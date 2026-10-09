@@ -106,7 +106,9 @@ async def summary(req: schemas.SummaryRequest):
     joined = "; ".join(req.alerts[:20])
     priority = "ALTO" if any("ALTO" in a.upper() for a in req.alerts) else "MEDIO"
     text = await gemini.generate(
-        f"Resume en máximo 3 frases estas alertas de la finca y di cuál atender primero: {joined}"
+        "Resume en máximo 3 frases estas alertas de la finca y di cuál atender primero. "
+        "Nota: ALTO/MEDIO indican el NIVEL DE RIESGO de cada sensor, no que el valor sea alto; "
+        f"interpreta el valor numérico según el sensor. Alertas: {joined}"
     )
     if text:
         return schemas.SummaryResponse(summary=text, priority=priority, source="gemini")

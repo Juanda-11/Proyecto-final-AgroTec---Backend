@@ -1,4 +1,5 @@
 """Cliente mínimo de la API REST de Gemini. Devuelve None si no hay clave o falla (se usa el respaldo)."""
+import asyncio
 import json
 import logging
 from typing import Optional
@@ -47,21 +48,28 @@ async def generate(
     if json_schema:
         body["generationConfig"]["responseMimeType"] = "application/json"
         body["generationConfig"]["responseSchema"] = json_schema
-    try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            r = await client.post(
-                URL.format(model=config.GEMINI_MODEL),
-                headers={"x-goog-api-key": config.GEMINI_API_KEY},
-                json=body,
-            )
-        r.raise_for_status()
-        data = r.json()
-        parts = data["candidates"][0]["content"]["parts"]
-        text = "".join(p.get("text", "") for p in parts if not p.get("thought")).strip()
-        return text or None
-    except Exception as exc:  # red, cuota, bloqueo de seguridad, formato inesperado
-        log.warning("Gemini no disponible: %s", type(exc).__name__)
-        return None
+    models = [config.GEMINI_MODEL, *[m for m in config.GEMINI_FALLBACKS if m != config.GEMINI_MODEL]]
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        for model in models:
+            for attempt in range(2):
+                try:
+                    r = await client.post(
+                        URL.format(model=model), headers={"x-goog-api-key": config.GEMINI_API_KEY}, json=body
+                    )
+                    if r.status_code in (429, 500, 502, 503, 504):
+                        log.warning("Gemini %s respondió %s (intento %s)", model, r.status_code, attempt + 1)
+                        await asyncio.sleep(0.8 * (attempt + 1))
+                        continue
+                    r.raise_for_status()
+                    parts = r.json()["candidates"][0]["content"]["parts"]
+                    text = "".join(p.get("text", "") for p in parts if not p.get("thought")).strip()
+                    if text:
+                        return text
+                    break  # respuesta vacía/bloqueada: probar otro modelo
+                except Exception as exc:  # red, 4xx, formato inesperado
+                    log.warning("Gemini %s falló: %s", model, type(exc).__name__)
+                    break
+    return None
 
 
 async def generate_json(prompt: str, schema: dict, **kw) -> Optional[dict]:
