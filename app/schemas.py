@@ -50,7 +50,7 @@ class ChatResponse(BaseModel):
 class DiagnoseRequest(BaseModel):
     crop: str = "papa"
     symptoms: str = Field(min_length=3, max_length=1500)
-    image_base64: Optional[str] = Field(default=None, max_length=6_000_000)
+    image_base64: Optional[str] = Field(default=None, max_length=4_000_000)
     image_mime: str = "image/jpeg"
 
 

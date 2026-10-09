@@ -20,7 +20,7 @@ Sin `GEMINI_API_KEY` todo funciona con el respaldo de reglas (campo `source: "re
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 cp .env.example .env        # y pega tu GEMINI_API_KEY
 export $(grep -v '^#' .env | xargs)
 uvicorn app.main:app --reload
@@ -30,4 +30,5 @@ Docs interactivas: http://localhost:8000/docs
 
 ## Despliegue en Vercel
 Importa este repo en Vercel (framework: Other). `api/index.py` + `vercel.json` ya están listos.
+`vercel.json` fija 60 s de duración para tolerar reintentos de Gemini. Las fotos de `/api/diagnose` deben pesar menos de ~3 MB (límite de Vercel: 4,5 MB por petición).
 Define las variables `GEMINI_API_KEY`, `GEMINI_MODEL` y `CORS_ORIGINS` (URL del frontend) en *Settings → Environment Variables*.
