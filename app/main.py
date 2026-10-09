@@ -1,3 +1,5 @@
+from urllib.parse import parse_qsl, urlencode
+
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -136,3 +138,25 @@ def root():
 def not_found(full_path: str, request: Request):
     """404 informativo: muestra la ruta que recibió la app (útil para depurar el despliegue)."""
     return JSONResponse({"detail": "Not Found", "path": request.url.path}, status_code=404)
+
+
+class RestoreVercelPath:
+    """Vercel reescribe /<ruta> a /api/index?__path=<ruta> (ver vercel.json) y la app solo ve /api/index.
+    Este middleware ASGI vuelve a poner la ruta original antes de enrutar."""
+
+    def __init__(self, inner):
+        self.inner = inner
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["path"] in ("/api/index", "/index"):
+            pairs = parse_qsl(scope.get("query_string", b"").decode(), keep_blank_values=True)
+            original = next((v for k, v in pairs if k == "__path"), None)
+            if original is not None:
+                path = "/" + original.lstrip("/")
+                rest = urlencode([(k, v) for k, v in pairs if k != "__path"])
+                scope = {**scope, "path": path, "raw_path": path.encode(), "query_string": rest.encode()}
+        await self.inner(scope, receive, send)
+
+
+# Debe ser el middleware más externo: se añade al final.
+app.add_middleware(RestoreVercelPath)

@@ -64,3 +64,12 @@ def test_routes_work_with_and_without_api_prefix():
     r = client.get("/api/no-existe")
     assert r.status_code == 404 and r.json()["path"] == "/api/no-existe"
     assert client.get("/").json()["name"] == "AgroTec API"
+
+
+def test_vercel_rewrite_restores_original_path():
+    r = client.get("/api/index?__path=api/health")
+    assert r.status_code == 200 and r.json()["status"] == "ok"
+    assert client.get("/api/index?__path=").json()["name"] == "AgroTec API"
+    r = client.post("/api/index?__path=api/forecast&x=1", json={"values": [50, 50, 50]})
+    assert r.status_code == 200 and r.json()["trend"] == "ESTABLE"
+    assert client.get("/api/index?__path=nada").json()["path"] == "/nada"

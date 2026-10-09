@@ -30,5 +30,5 @@ Docs interactivas: http://localhost:8000/docs
 
 ## Despliegue en Vercel
 Importa este repo en Vercel (framework: Other). `api/index.py` + `vercel.json` ya están listos.
-`vercel.json` fija 60 s de duración para tolerar reintentos de Gemini. Las fotos de `/api/diagnose` deben pesar menos de ~3 MB (límite de Vercel: 4,5 MB por petición).
+`vercel.json` reescribe cada ruta a `/api/index?__path=<ruta>` y el middleware `RestoreVercelPath` la restaura (Vercel solo entrega `/api/index` a la app). `vercel.json` fija 60 s de duración para tolerar reintentos de Gemini. Las fotos de `/api/diagnose` deben pesar menos de ~3 MB (límite de Vercel: 4,5 MB por petición).
 Define las variables `GEMINI_API_KEY`, `GEMINI_MODEL` y `CORS_ORIGINS` (URL del frontend) en *Settings → Environment Variables*.
