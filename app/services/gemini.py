@@ -42,7 +42,7 @@ async def generate(
     body: dict = {
         "system_instruction": {"parts": [{"text": SYSTEM}]},
         "contents": contents,
-        "generationConfig": {"temperature": 0.4, "maxOutputTokens": 600},
+        "generationConfig": {"temperature": 0.4, "maxOutputTokens": 2048},
     }
     if json_schema:
         body["generationConfig"]["responseMimeType"] = "application/json"
@@ -51,12 +51,14 @@ async def generate(
         async with httpx.AsyncClient(timeout=timeout) as client:
             r = await client.post(
                 URL.format(model=config.GEMINI_MODEL),
-                params={"key": config.GEMINI_API_KEY},
+                headers={"x-goog-api-key": config.GEMINI_API_KEY},
                 json=body,
             )
         r.raise_for_status()
         data = r.json()
-        return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+        parts = data["candidates"][0]["content"]["parts"]
+        text = "".join(p.get("text", "") for p in parts if not p.get("thought")).strip()
+        return text or None
     except Exception as exc:  # red, cuota, bloqueo de seguridad, formato inesperado
         log.warning("Gemini no disponible: %s", type(exc).__name__)
         return None
