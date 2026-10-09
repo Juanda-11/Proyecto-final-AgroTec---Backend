@@ -55,3 +55,12 @@ def test_summary():
     assert client.post("/api/summary", json={"alerts": []}).json()["priority"] == "BAJO"
     s = client.post("/api/summary", json={"alerts": ["Humedad ALTO 12%"]}).json()
     assert s["priority"] == "ALTO"
+
+
+def test_routes_work_with_and_without_api_prefix():
+    assert client.get("/api/health").status_code == 200
+    assert client.get("/health").status_code == 200
+    assert client.post("/chat", json={"message": "hola"}).status_code == 200
+    r = client.get("/api/no-existe")
+    assert r.status_code == 404 and r.json()["path"] == "/api/no-existe"
+    assert client.get("/").json()["name"] == "AgroTec API"

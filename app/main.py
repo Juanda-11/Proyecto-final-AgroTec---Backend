@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import config, schemas
@@ -7,6 +8,10 @@ from app.services import gemini, rules
 
 app = FastAPI(title="AgroTec API", version="1.0.0",
               description="Servicios de IA para agricultura de precisión en Nariño")
+
+# Las rutas viven en un router que se monta con y sin el prefijo /api: así funcionan igual en local,
+# con el rewrite de Vercel y cuando Vercel monta api/index.py bajo /api.
+router = APIRouter()
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,7 +22,7 @@ app.add_middleware(
 )
 
 
-@app.get("/api/health")
+@router.get("/health")
 def health():
     return {"status": "ok", "gemini": gemini.available(), "model": config.GEMINI_MODEL}
 
@@ -27,7 +32,7 @@ def _reading_text(r: schemas.Reading) -> str:
             f"pH {r.ph:.1f}, UV {r.uv:.0f}, prob. lluvia {r.rain:.0f}%")
 
 
-@app.post("/api/analyze", response_model=schemas.Assessment)
+@router.post("/analyze", response_model=schemas.Assessment)
 async def analyze(req: schemas.AnalyzeRequest):
     """Riesgo y riego: reglas deterministas + explicación en lenguaje natural con Gemini."""
     result = rules.assess(req.reading, req.crop)
@@ -41,7 +46,7 @@ async def analyze(req: schemas.AnalyzeRequest):
     return result
 
 
-@app.post("/api/chat", response_model=schemas.ChatResponse)
+@router.post("/chat", response_model=schemas.ChatResponse)
 async def chat(req: schemas.ChatRequest):
     ctx = ""
     if req.reading:
@@ -68,7 +73,7 @@ DIAG_SCHEMA = {
 }
 
 
-@app.post("/api/diagnose", response_model=schemas.DiagnoseResponse)
+@router.post("/diagnose", response_model=schemas.DiagnoseResponse)
 async def diagnose(req: schemas.DiagnoseRequest):
     """Diagnóstico orientativo a partir de síntomas (y foto opcional, visión de Gemini)."""
     image = (req.image_base64, req.image_mime) if req.image_base64 else None
@@ -91,13 +96,13 @@ async def diagnose(req: schemas.DiagnoseRequest):
     )
 
 
-@app.post("/api/forecast", response_model=schemas.ForecastResponse)
+@router.post("/forecast", response_model=schemas.ForecastResponse)
 def forecast(req: schemas.ForecastRequest):
     """Predicción de la tendencia de un sensor y tiempo estimado hasta el umbral crítico."""
     return fc.forecast(req.values, req.horizon, req.critical_below)
 
 
-@app.post("/api/summary", response_model=schemas.SummaryResponse)
+@router.post("/summary", response_model=schemas.SummaryResponse)
 async def summary(req: schemas.SummaryRequest):
     """Resume la cola de alertas en un parte corto para el agricultor."""
     if not req.alerts:
@@ -116,3 +121,18 @@ async def summary(req: schemas.SummaryRequest):
         summary=f"{len(req.alerts)} alertas pendientes. Atienda primero: {req.alerts[0]}.",
         priority=priority, source="reglas",
     )
+
+
+app.include_router(router, prefix="/api")
+app.include_router(router, include_in_schema=False)
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    return {"name": "AgroTec API", "docs": "/docs", "health": "/api/health"}
+
+
+@app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], include_in_schema=False)
+def not_found(full_path: str, request: Request):
+    """404 informativo: muestra la ruta que recibió la app (útil para depurar el despliegue)."""
+    return JSONResponse({"detail": "Not Found", "path": request.url.path}, status_code=404)
