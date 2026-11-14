@@ -2,6 +2,41 @@
 
 No hace falta saber electrónica ni soldar. Si siguen los pasos en orden, funciona. **Lean los avisos de seguridad primero.**
 
+> **Versión del grupo: SIN sensor UV.** La maqueta lleva 3 sensores reales: **humedad de suelo, DHT22 (temperatura y humedad del aire) y lluvia**.
+> El UV y el pH quedan simulados y la app los marca como **SIM**. En todo lo que sigue, **ignoren el UV** (solo se usa la sección 4.5 si algún día consiguen uno).
+
+## Reparto sugerido para el grupo de 3
+Cada quien hace su parte **y la sube a GitHub desde su propia cuenta** (así los commits reflejan el trabajo real de cada uno). Pueden cambiar los roles: lo importante es que las tres partes se hagan.
+
+| Persona | Responsabilidad | Qué entrega (commit propio) |
+|---|---|---|
+| **Juan** (Juanda-11) | **Nube y verificación:** variables en Vercel (`DEVICE_API_KEY`, Upstash), fusionar PRs, probar con el simulador, revisar que la app muestre "Sensor real" | `docs`: notas de despliegue y capturas de la app en modo real (`hardware/docs/`) |
+| **Brayan** (brayanckr) | **Electrónica y firmware:** armar el circuito (sección 4), instalar Arduino IDE, calibrar y subir el firmware (secciones 3 y 5) | `hardware/docs/calibration-results.md` con los valores medidos (`SOIL_RAW_*`, `RAIN_RAW_*`) y foto del cableado |
+| **Mario** (MarioZaMu) | **Maqueta y demostración:** armar la maqueta física (sección 7), ensayar el guion (sección 8) y preparar el plan B | `hardware/docs/demo-checklist.md` con el guion ajustado y fotos de la maqueta |
+
+**Cómo subir cada parte (Brayan y Mario ya son colaboradores del repo):**
+```bash
+git clone https://github.com/Juanda-11/Proyecto-final-AgroTec---Backend.git
+cd Proyecto-final-AgroTec---Backend
+git checkout -b feature/tu-nombre-tarea        # una rama por persona
+# ...crean o editan sus archivos...
+git add hardware/docs/tu-archivo.md
+git commit -m "docs(hardware): calibration results and wiring photo"   # mensaje en inglés, pequeño y claro
+git push -u origin feature/tu-nombre-tarea
+# en GitHub: "Compare & pull request" -> otro integrante lo revisa y lo fusiona
+```
+Un commit por cambio real (no mezclen todo en uno). **No** suban `config.h` (tiene claves): ya está ignorado por git.
+
+### Lista de verificación antes de empezar (¿ya tienen todo?)
+- [ ] ESP32 DevKit V1 + cable USB **de datos**
+- [ ] Sensor de humedad de suelo capacitivo v1.2
+- [ ] DHT22 (módulo de 3 pines)
+- [ ] Módulo de lluvia FC-37 (placa + módulo con `AO`)
+- [ ] Protoboard 830 puntos y cables dupont macho-macho, macho-hembra y hembra-hembra
+- [ ] Un celular con **zona WiFi** (2.4 GHz) y un power bank o cargador
+- [ ] Matera con tierra, base de la maqueta, caja plástica, silicona/cinta
+- [ ] *(Opcional)* sensor UV: **no es necesario**
+
 ## 0. Avisos importantes (2 minutos)
 1. **Armen siempre con el ESP32 desconectado del USB.** Conecten el cable USB solo cuando todo esté revisado.
 2. Todos los sensores se alimentan a **3V3** (el pin marcado `3V3`). **Nunca** los conecten a `VIN` ni a `5V`: pueden dañar el ESP32.
@@ -13,7 +48,7 @@ No hace falta saber electrónica ni soldar. Si siguen los pasos en orden, funcio
 - ESP32 DevKit V1 (30 pines), cable USB de datos, computador con Arduino IDE.
 - Protoboard de 830 puntos.
 - Cables dupont de los **3 tipos**: macho-macho (M-M), macho-hembra (M-H) y hembra-hembra (H-H). Un paquete de 120 trae los tres.
-- Los sensores: humedad de suelo capacitivo, DHT22, módulo de lluvia (placa + módulo con comparador) y, opcionalmente, un sensor UV (ver 4.5).
+- Los 3 sensores: humedad de suelo capacitivo, DHT22 y módulo de lluvia (placa + módulo con comparador). El sensor UV es opcional (4.5).
 - Cinta o silicona caliente, una matera con tierra.
 
 ## 2. Conozcan la placa y la protoboard
@@ -26,7 +61,7 @@ No hace falta saber electrónica ni soldar. Si siguen los pasos en orden, funcio
    VN (39)                                   TX0
  ► D34   <- humedad de suelo                 RX0
  ► D35   <- lluvia                           D21
- ► D32   <- UV                               D19
+ ► D32   <- UV (SIN USAR en nuestra versión)  D19
    D33                                       D18
    D25                                       D5
    D26                                       TX2
@@ -90,25 +125,18 @@ Dejen el ESP32 sobre la mesa **al lado** de la protoboard (no hace falta enchufa
    - `AO` → pin **D35** del ESP32
 3. Pongan la placa **inclinada** para que el agua escurra y se pueda secar.
 
-### 4.5 Sensor UV → pin D32 (**opcional**; elijan una de estas opciones)
-El UV es el sensor menos importante de la maqueta. Si no consiguen el GUVA-S12SD, tienen tres salidas:
+### 4.5 Sensor UV → **No lo usaremos** (saltar esta sección)
+Nuestra maqueta **no lleva sensor UV**: no conecten nada al pin D32 y en `config.h` dejen `#define UV_SENSOR 0` (el firmware ya lo trae así).
+La app mostrará el UV con la etiqueta **SIM** (simulado), y es lo correcto.
 
-| Opción | Qué comprar | En `config.h` | Conexión |
-|---|---|---|---|
-| **A. Sin sensor UV** (la más simple) | Nada | `#define UV_SENSOR 0` | No conectan nada a D32. La app mostrará el UV como **SIM** (simulado) |
-| **B. UVM-30A** (analógico, 3 pines) | "Sensor UV UVM-30A" | `#define UV_SENSOR 1` | `VCC` → riel rojo, `GND` → riel azul, `OUT` → **D32** |
-| **C. ML8511 / GY-8511** (analógico) | "Módulo sensor UV ML8511" o "GY-8511" | `#define UV_SENSOR 2` | `VIN`/`3V3` → riel rojo, `GND` → riel azul, `OUT` → **D32**, **`EN` → riel rojo** (3V3) |
-
-El GUVA-S12SD también va con `UV_SENSOR 1` (conexión `VCC` / `GND` / `SIG` → D32).
-- El sensor debe **mirar hacia arriba/luz**. Bajo techo marcará casi 0: es normal; para la demo usen una ventana soleada, el sol o una linterna de luz negra.
-- Evite los módulos de **I2C** (VEML6075, LTR390): necesitan otro cableado y otra librería que este firmware no incluye.
-- Si no ponen sensor UV (`UV_SENSOR 0`), no conecten nada al pin D32 y el resto funciona igual.
+*Solo si algún día consiguen uno:* el GUVA-S12SD o el UVM-30A (`UV_SENSOR 1`) y el ML8511/GY-8511 (`UV_SENSOR 2`, además con el pin `EN` al riel rojo)
+se conectan con `VCC` al riel rojo, `GND` al azul y la salida a **D32**. Eviten los módulos I2C (VEML6075, LTR390): este firmware no los soporta.
 
 ### 4.6 Revisión final (no se salten esto)
 Marquen cada línea cuando la confirmen con la vista:
 - [ ] `3V3` del ESP32 → solo al riel **rojo**. `GND` → solo al riel **azul**. Nada conectado a `VIN`.
-- [ ] Cada sensor tiene **un** cable rojo, **uno** azul y **uno** de señal (el ML8511 además lleva `EN` al riel rojo).
-- [ ] Señales: DHT22 → **D4**, suelo → **D34**, lluvia → **D35**, UV (si lo tienen) → **D32**.
+- [ ] Los 3 sensores tienen **un** cable rojo, **uno** azul y **uno** de señal.
+- [ ] Señales: DHT22 → **D4**, suelo → **D34**, lluvia → **D35**. **D32 queda sin conectar.**
 - [ ] Ningún cable de señal toca los rieles ni otra columna.
 - [ ] Todo está seco.
 
@@ -119,7 +147,7 @@ Marquen cada línea cuando la confirmen con la vista:
    `soil raw=… | rain raw=… | uv mV=… | temp=… | air hum=…`
 4. **Suelo:** anoten `soil raw` con el sensor **al aire, seco** → eso es `SOIL_RAW_DRY` (suele ser ~3000–3500). Luego sumerjan **solo la punta, hasta la línea**, en un vaso de agua → `SOIL_RAW_WET` (~1200–1600).
 5. **Lluvia:** anoten `rain raw` con la placa seca (`RAIN_RAW_DRY`, ~4095) y con unas gotas cubriendo las pistas (`RAIN_RAW_WET`).
-6. Escriban esos 4 números en `config.h`, pongan `CALIBRATION_MODE 0` y rellenen:
+6. Escriban esos 4 números en `config.h` (en `uv mV` verán 0: normal, no hay sensor UV), pongan `CALIBRATION_MODE 0` y rellenen:
    - `WIFI_SSID` y `WIFI_PASSWORD`: **usen la zona WiFi de un celular** (2.4 GHz). El WiFi de la universidad normalmente no funciona con el ESP32.
    - `API_URL`: la URL de su backend en Vercel, sin `/` final.
    - `DEVICE_KEY`: la misma clave que pusieron en la variable `DEVICE_API_KEY` de Vercel.
@@ -143,10 +171,11 @@ Marquen cada línea cuando la confirmen con la vista:
 | Echan agua a la matera | La humedad del suelo sube en unos segundos |
 | Dejan secar / retiran el sensor | La humedad baja; si cruza el umbral, aparece una alerta en la cola |
 | Respiran cerca del DHT22 | La temperatura sube |
-| Cubren el sensor UV con la mano / usan una linterna | El UV baja / sube |
 | Echan unas gotas en la placa de lluvia | La probabilidad de lluvia sube |
 | Pulsan "Analizar mi cultivo" | La IA explica el estado con los datos **reales** |
 | Apagan el ESP32 | A los ~30 s la app dice "Nodo sin señal" |
+
+> En la pantalla Inicio, humedad del suelo y temperatura salen con la etiqueta **REAL**; **pH y UV salen como SIM** (simulados). Díganlo en la sustentación: "la maqueta mide en real suelo, temperatura, humedad del aire y lluvia; pH y UV están simulados y se pueden añadir con más sensores".
 
 ## 9. Si algo no funciona
 | Síntoma | Causa probable | Qué hacer |
@@ -156,19 +185,22 @@ Marquen cada línea cuando la confirmen con la vista:
 | `DHT22 read failed` | Cable de datos mal puesto o sin alimentación | Revisen D4, `+` y `−`; reconecten |
 | Suelo siempre 0 % o 100 % | Calibración o cable en otro pin | Repitan el paso 5; confirmen D34 |
 | Lluvia siempre 100 % o 0 % | Falta calibrar o usaron `DO` en vez de `AO` | Usen `AO` → D35; calibren |
-| UV siempre 0 | Estás bajo techo, o `UV_SENSOR` no coincide con su sensor | Prueben al sol; revisen `UV_SENSOR` (0, 1 o 2) en `config.h` |
 | `WiFi connection failed` | Red 5 GHz, con login web, o clave mal escrita | Usen la zona WiFi del celular en 2.4 GHz |
 | `POST … -> 401` | `DEVICE_KEY` ≠ `DEVICE_API_KEY` | Que sean exactamente iguales y redespliegue Vercel |
 | `POST … -> 503` | Falta definir `DEVICE_API_KEY` en Vercel | Agréguenla y redespliegen |
 | `POST … -> -1` / `-11` | Sin internet o URL mal escrita | Revisen `API_URL` (con `https://`, sin `/` final) |
 | La app dice "Sin señal" aunque el Serial muestra 201 | La app apunta a otro backend | Revisen `EXPO_PUBLIC_API_URL` en el frontend y redespliéguenlo |
 
-## 10. Plan sugerido para la semana
-| Día | Tareas |
-|---|---|
-| 1 | Pedir las piezas. Instalar Arduino IDE y subir el *Blink*. Configurar Vercel (`DEVICE_API_KEY` + Upstash) y probar con el simulador. |
-| 2–3 | Llegan las piezas: armar el circuito (sección 4) y calibrar (sección 5). |
-| 4 | Verificar extremo a extremo (sección 6). Armar la maqueta física. |
-| 5 | Ensayar el guion de demostración. Corregir lo que falle. |
-| 6 | Ensayo general completo; tener a mano la zona WiFi y el power bank. |
-| 7 | Entrega. Lleven un ESP32 de repuesto y el simulador de dispositivo como plan B. |
+## 10. Plan sugerido para la semana (con responsables)
+| Día | Tarea | Quién |
+|---|---|---|
+| 1 | Verificar que tienen todas las piezas. Instalar Arduino IDE y subir el *Blink* (sección 3) | Brayan |
+| 1 | Variables en Vercel (`DEVICE_API_KEY` + Upstash), redesplegar y probar con `simulate_device.py` | Juan |
+| 2 | Armar el circuito de los 3 sensores (sección 4) y revisar con la lista 4.6 | Brayan (con Mario de apoyo) |
+| 2 | Conseguir base, matera, tierra, caja y silicona | Mario |
+| 3 | Calibrar y subir el firmware final (sección 5); registrar los valores en `calibration-results.md` | Brayan |
+| 3 | Verificar de extremo a extremo (sección 6): `/api/readings/latest` y la app en "Sensor real" | Juan |
+| 4 | Armar la maqueta física (sección 7) y fijar el cableado | Mario y Brayan |
+| 5 | Ensayar el guion de demostración (sección 8); tomar fotos y capturas | Todos |
+| 6 | Ensayo general completo con zona WiFi y power bank; corregir fallos | Todos |
+| 7 | Entrega. Lleven un ESP32 de repuesto (si lo tienen) y el simulador de dispositivo como plan B | Todos |

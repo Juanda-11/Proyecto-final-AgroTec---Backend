@@ -7,7 +7,7 @@ Nodo sensor real que mide la maqueta y envía los datos por WiFi al backend; la 
 Sensores ──► ESP32 ──WiFi/HTTPS POST──► API (Vercel) ──► Upstash Redis ◄── App (consulta cada ~8 s)
 ```
 
-> **¿Primera vez armando un circuito?** Sigan la guía paso a paso: [`GUIA_ARMADO.md`](GUIA_ARMADO.md).
+> **¿Primera vez armando un circuito?** Sigan la guía paso a paso: [`GUIA_ARMADO.md`](GUIA_ARMADO.md) (incluye el reparto de tareas del grupo y la versión **sin sensor UV**).
 
 ## 1. Lista de compra (precios estimados en COP; verifíquenlos, varían por tienda)
 | # | Componente | Cant. | Estimado | Nota |
