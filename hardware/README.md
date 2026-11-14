@@ -7,6 +7,8 @@ Nodo sensor real que mide la maqueta y envía los datos por WiFi al backend; la 
 Sensores ──► ESP32 ──WiFi/HTTPS POST──► API (Vercel) ──► Upstash Redis ◄── App (consulta cada ~8 s)
 ```
 
+> **¿Primera vez armando un circuito?** Sigan la guía paso a paso: [`GUIA_ARMADO.md`](GUIA_ARMADO.md).
+
 ## 1. Lista de compra (precios estimados en COP; verifíquenlos, varían por tienda)
 | # | Componente | Cant. | Estimado | Nota |
 |---|---|---|---|---|
@@ -29,7 +31,8 @@ Sensores ──► ESP32 ──WiFi/HTTPS POST──► API (Vercel) ──► U
 **Dónde comprar:** tiendas de electrónica con envío a Pasto (Mercado Libre Colombia, Didácticas Electrónicas, Sigma Electrónica, Electronilab, etc.) o locales en Pasto.
 Pidan **hoy**: el envío tarda 2–5 días y queda una semana.
 
-## 2. Conexiones (ESP32 DevKit V1)
+## 2. Conexiones (ESP32 DevKit V1) — resumen
+La explicación detallada, con avisos de seguridad y fotos mentales del orden de los pines, está en `GUIA_ARMADO.md`.
 Usen solo pines **ADC1** (32–39) para lo analógico: el ADC2 no funciona con el WiFi encendido. Todo se alimenta a **3V3**.
 
 | Sensor | Pin del sensor | Pin del ESP32 |
