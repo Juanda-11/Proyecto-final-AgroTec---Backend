@@ -1,5 +1,5 @@
 // AgroTec sensor node (ESP32 DevKit V1)
-// Reads soil moisture, air temperature/humidity, rain and UV and POSTs them to the AgroTec API.
+// Reads soil moisture, air temperature/humidity, rain and (optionally) UV and POSTs them to the AgroTec API.
 // Libraries to install in Arduino IDE: "DHT sensor library" and "Adafruit Unified Sensor" (both by Adafruit).
 // Board: "ESP32 Dev Module". Use ADC1 pins only (32-39): ADC2 does not work while WiFi is on.
 #include <DHT.h>
@@ -13,7 +13,7 @@
 static const uint8_t PIN_DHT = 4;    // DHT22 data
 static const uint8_t PIN_SOIL = 34;  // capacitive soil moisture, analog out
 static const uint8_t PIN_RAIN = 35;  // rain module AO
-static const uint8_t PIN_UV = 32;    // GUVA-S12SD analog out
+static const uint8_t PIN_UV = 32;    // UV sensor analog out (only used when UV_SENSOR != 0)
 static const uint8_t PIN_LED = 2;    // on-board LED
 
 DHT dht(PIN_DHT, DHT22);
@@ -67,10 +67,15 @@ bool sendReading() {
   }
   float soil = soilPercent(readAveraged(PIN_SOIL), SOIL_RAW_DRY, SOIL_RAW_WET);
   float rain = rainPercent(readAveraged(PIN_RAIN), RAIN_RAW_DRY, RAIN_RAW_WET);
-  float uv = uvScale(readMilliVoltsAveraged(PIN_UV));
+  float uv = 0.0f;
+#if UV_SENSOR == 1
+  uv = uvScale(readMilliVoltsAveraged(PIN_UV));
+#elif UV_SENSOR == 2
+  uv = uvScaleMl8511(readMilliVoltsAveraged(PIN_UV));
+#endif
 
   char body[256];
-  int len = buildPayload(body, sizeof(body), DEVICE_ID, soil, temp, airHumidity, rain, uv, HAS_PH_SENSOR != 0, 0.0f);
+  int len = buildPayload(body, sizeof(body), DEVICE_ID, soil, temp, airHumidity, rain, UV_SENSOR != 0, uv, HAS_PH_SENSOR != 0, 0.0f);
   if (len < 0) {
     Serial.println("Payload too large");
     return false;
@@ -111,7 +116,8 @@ void setup() {
 void loop() {
 #if CALIBRATION_MODE
   Serial.printf("soil raw=%d | rain raw=%d | uv mV=%.0f | temp=%.1f C | air hum=%.1f %%\n", readAveraged(PIN_SOIL),
-                readAveraged(PIN_RAIN), readMilliVoltsAveraged(PIN_UV), dht.readTemperature(), dht.readHumidity());
+                readAveraged(PIN_RAIN), UV_SENSOR != 0 ? readMilliVoltsAveraged(PIN_UV) : 0.0f, dht.readTemperature(),
+                dht.readHumidity());
   delay(1000);
 #else
   if (WiFi.status() != WL_CONNECTED) {

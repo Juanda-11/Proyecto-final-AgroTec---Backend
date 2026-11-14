@@ -21,6 +21,11 @@
 #define RAIN_RAW_DRY 4095
 #define RAIN_RAW_WET 1200
 
+// UV sensor on GPIO32. 0 = no UV sensor (the app keeps UV simulated and labels it SIM)
+//                      1 = GUVA-S12SD or UVM-30A (about 100 mV per UV index)
+//                      2 = ML8511 / GY-8511 (about 1.0 V with no UV, up to 2.8 V; tie its EN pin to 3V3)
+#define UV_SENSOR 1
+
 // Set to 1 only if you wired an analog pH module (needs its own calibration). Otherwise the app keeps pH simulated.
 #define HAS_PH_SENSOR 0
 
