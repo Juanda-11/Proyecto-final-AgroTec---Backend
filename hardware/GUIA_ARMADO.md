@@ -68,7 +68,7 @@ Dejen el ESP32 sobre la mesa **al lado** de la protoboard (no hace falta enchufa
 
 ### 4.2 DHT22 (temperatura y humedad del aire) → pin D4
 1. El módulo de 3 pines trae etiquetas: `+` (o VCC), `OUT` (o DATA) y `−` (o GND).
-2. Clavén sus 3 pines en una fila de la protoboard, en 3 columnas contiguas (por ejemplo columnas 10, 11 y 12 en la fila `a`).
+2. Claven sus 3 pines en una fila de la protoboard, en 3 columnas contiguas (por ejemplo columnas 10, 11 y 12 en la fila `a`).
 3. Cables:
    - riel **rojo** → columna del `+` (M-M)
    - riel **azul** → columna del `−` (M-M)
