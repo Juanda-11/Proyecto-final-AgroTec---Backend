@@ -12,6 +12,9 @@ Proyecto final de Estructuras de Datos — Universidad Cooperativa de Colombia, 
 | `POST /api/diagnose` | Diagnóstico orientativo por síntomas y **foto** | Gemini multimodal (JSON estructurado) + reglas |
 | `POST /api/forecast` | Predicción de tendencia y horas hasta nivel crítico | Regresión lineal (mínimos cuadrados) |
 | `POST /api/summary` | Parte resumido de la cola de alertas | Gemini + respaldo |
+| `POST /api/readings` | **Ingesta del sensor real (ESP32)**, protegida con `X-Device-Key` | Pydantic + Upstash Redis |
+| `GET /api/readings/latest` | Última lectura del sensor y si sigue en línea | — |
+| `GET /api/readings/history` | Últimas lecturas del sensor (más recientes primero) | — |
 | `GET /api/health` | Estado y si Gemini está activo | — |
 
 Sin `GEMINI_API_KEY` todo funciona con el respaldo de reglas (campo `source: "reglas"`).
@@ -32,3 +35,7 @@ Docs interactivas: http://localhost:8000/docs
 Importa este repo en Vercel (framework: Other). `api/index.py` + `vercel.json` ya están listos.
 `vercel.json` reescribe cada ruta a `/api/index?__path=<ruta>` y el middleware `RestoreVercelPath` la restaura (Vercel solo entrega `/api/index` a la app). `vercel.json` fija 60 s de duración para tolerar reintentos de Gemini. Las fotos de `/api/diagnose` deben pesar menos de ~3 MB (límite de Vercel: 4,5 MB por petición).
 Define las variables `GEMINI_API_KEY`, `GEMINI_MODEL` y `CORS_ORIGINS` (URL del frontend) en *Settings → Environment Variables*.
+
+## Hardware
+Guía de compra, conexiones, firmware del ESP32 y simulador de dispositivo en [`hardware/README.md`](hardware/README.md).
+Variables nuevas: `DEVICE_API_KEY`, `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` (o `KV_REST_API_URL`/`KV_REST_API_TOKEN`).
