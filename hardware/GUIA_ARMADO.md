@@ -13,7 +13,7 @@ No hace falta saber electrónica ni soldar. Si siguen los pasos en orden, funcio
 - ESP32 DevKit V1 (30 pines), cable USB de datos, computador con Arduino IDE.
 - Protoboard de 830 puntos.
 - Cables dupont de los **3 tipos**: macho-macho (M-M), macho-hembra (M-H) y hembra-hembra (H-H). Un paquete de 120 trae los tres.
-- Los 4 sensores: humedad de suelo capacitivo, DHT22, módulo de lluvia (placa + módulo con comparador) y UV GUVA-S12SD.
+- Los sensores: humedad de suelo capacitivo, DHT22, módulo de lluvia (placa + módulo con comparador) y, opcionalmente, un sensor UV (ver 4.5).
 - Cinta o silicona caliente, una matera con tierra.
 
 ## 2. Conozcan la placa y la protoboard
@@ -90,18 +90,25 @@ Dejen el ESP32 sobre la mesa **al lado** de la protoboard (no hace falta enchufa
    - `AO` → pin **D35** del ESP32
 3. Pongan la placa **inclinada** para que el agua escurra y se pueda secar.
 
-### 4.5 Sensor UV GUVA-S12SD → pin D32
-1. Pines: `VCC` (o `+`), `GND` (o `−`), `SIG` (u `OUT`).
-   - riel **rojo** → `VCC`
-   - riel **azul** → `GND`
-   - `SIG` → pin **D32** del ESP32
-2. El sensor debe **mirar hacia arriba/luz**. Bajo techo marcará casi 0: es normal.
+### 4.5 Sensor UV → pin D32 (**opcional**; elijan una de estas opciones)
+El UV es el sensor menos importante de la maqueta. Si no consiguen el GUVA-S12SD, tienen tres salidas:
+
+| Opción | Qué comprar | En `config.h` | Conexión |
+|---|---|---|---|
+| **A. Sin sensor UV** (la más simple) | Nada | `#define UV_SENSOR 0` | No conectan nada a D32. La app mostrará el UV como **SIM** (simulado) |
+| **B. UVM-30A** (analógico, 3 pines) | "Sensor UV UVM-30A" | `#define UV_SENSOR 1` | `VCC` → riel rojo, `GND` → riel azul, `OUT` → **D32** |
+| **C. ML8511 / GY-8511** (analógico) | "Módulo sensor UV ML8511" o "GY-8511" | `#define UV_SENSOR 2` | `VIN`/`3V3` → riel rojo, `GND` → riel azul, `OUT` → **D32**, **`EN` → riel rojo** (3V3) |
+
+El GUVA-S12SD también va con `UV_SENSOR 1` (conexión `VCC` / `GND` / `SIG` → D32).
+- El sensor debe **mirar hacia arriba/luz**. Bajo techo marcará casi 0: es normal; para la demo usen una ventana soleada, el sol o una linterna de luz negra.
+- Evite los módulos de **I2C** (VEML6075, LTR390): necesitan otro cableado y otra librería que este firmware no incluye.
+- Si no ponen sensor UV (`UV_SENSOR 0`), no conecten nada al pin D32 y el resto funciona igual.
 
 ### 4.6 Revisión final (no se salten esto)
 Marquen cada línea cuando la confirmen con la vista:
 - [ ] `3V3` del ESP32 → solo al riel **rojo**. `GND` → solo al riel **azul**. Nada conectado a `VIN`.
-- [ ] Cada sensor tiene **un** cable rojo, **uno** azul y **uno** de señal.
-- [ ] Señales: DHT22 → **D4**, suelo → **D34**, lluvia → **D35**, UV → **D32**.
+- [ ] Cada sensor tiene **un** cable rojo, **uno** azul y **uno** de señal (el ML8511 además lleva `EN` al riel rojo).
+- [ ] Señales: DHT22 → **D4**, suelo → **D34**, lluvia → **D35**, UV (si lo tienen) → **D32**.
 - [ ] Ningún cable de señal toca los rieles ni otra columna.
 - [ ] Todo está seco.
 
@@ -149,7 +156,7 @@ Marquen cada línea cuando la confirmen con la vista:
 | `DHT22 read failed` | Cable de datos mal puesto o sin alimentación | Revisen D4, `+` y `−`; reconecten |
 | Suelo siempre 0 % o 100 % | Calibración o cable en otro pin | Repitan el paso 5; confirmen D34 |
 | Lluvia siempre 100 % o 0 % | Falta calibrar o usaron `DO` en vez de `AO` | Usen `AO` → D35; calibren |
-| UV siempre 0 | Estás bajo techo | Prueben cerca de una ventana soleada o al sol |
+| UV siempre 0 | Estás bajo techo, o `UV_SENSOR` no coincide con su sensor | Prueben al sol; revisen `UV_SENSOR` (0, 1 o 2) en `config.h` |
 | `WiFi connection failed` | Red 5 GHz, con login web, o clave mal escrita | Usen la zona WiFi del celular en 2.4 GHz |
 | `POST … -> 401` | `DEVICE_KEY` ≠ `DEVICE_API_KEY` | Que sean exactamente iguales y redespliegue Vercel |
 | `POST … -> 503` | Falta definir `DEVICE_API_KEY` en Vercel | Agréguenla y redespliegen |

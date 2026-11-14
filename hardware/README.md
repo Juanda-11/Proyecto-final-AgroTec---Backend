@@ -16,7 +16,7 @@ Sensores ──► ESP32 ──WiFi/HTTPS POST──► API (Vercel) ──► U
 | 2 | **Sensor de humedad de suelo capacitivo v1.2** | 2 | 8.000–15.000 c/u | No compren el de 2 puntas "resistivo": se corroe en días |
 | 3 | **DHT22 (AM2302)** en módulo con 3 pines | 1 | 15.000–30.000 | Temperatura y humedad del aire (el DHT11 también sirve, pero es peor) |
 | 4 | **Módulo sensor de lluvia FC-37 / YL-83** (placa + comparador, con salida AO) | 1 | 5.000–10.000 | |
-| 5 | **Sensor UV GUVA-S12SD** (módulo) | 1 | 15.000–30.000 | |
+| 5 | **Sensor UV** (opcional): GUVA-S12SD, **UVM-30A** o **ML8511/GY-8511** (los tres sirven; si no consiguen ninguno, se omite) | 0–1 | 15.000–30.000 | Se elige con `UV_SENSOR` en `config.h` (ver `GUIA_ARMADO.md` §4.5) |
 | 6 | **Protoboard 830 puntos** + **cables dupont** (M-M, M-H, H-H) | 1 kit | 15.000–25.000 | |
 | 7 | Cargador USB 5 V / 1 A (sirve el de un celular) o **power bank** | 1 | 0–25.000 | El power bank permite demostrar sin enchufe |
 | 8 | Materiales de la maqueta: base de madera/acrílico, matera con tierra y planta, caja plástica para el ESP32, silicona caliente | — | 30.000–60.000 | |
@@ -40,7 +40,7 @@ Usen solo pines **ADC1** (32–39) para lo analógico: el ADC2 no funciona con e
 | DHT22 | VCC / DATA / GND | 3V3 / **GPIO4** / GND |
 | Humedad de suelo | VCC / AOUT / GND | 3V3 / **GPIO34** / GND |
 | Lluvia FC-37 | VCC / **AO** / GND | 3V3 / **GPIO35** / GND |
-| UV GUVA-S12SD | VCC / SIG(OUT) / GND | 3V3 / **GPIO32** / GND |
+| UV (opcional) | VCC / SIG(OUT) / GND | 3V3 / **GPIO32** / GND |
 
 Si el DHT22 viene suelto (4 patas), pongan una resistencia de 10 kΩ entre VCC y DATA. El pin DO del módulo de lluvia no se usa.
 
