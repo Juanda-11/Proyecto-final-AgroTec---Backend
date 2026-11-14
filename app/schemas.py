@@ -84,3 +84,30 @@ class SummaryResponse(BaseModel):
     summary: str
     priority: Risk
     source: Literal["gemini", "reglas"]
+
+
+class DeviceReadingIn(BaseModel):
+    """Payload sent by the physical sensor node (ESP32). Optional fields may be omitted
+    when the node has no such sensor; the app keeps simulating those."""
+
+    device_id: str = Field(default="esp32-01", min_length=1, max_length=40, pattern=r"^[A-Za-z0-9_.-]+$")
+    soil_moisture: float = Field(ge=0, le=100)
+    temperature: float = Field(ge=-20, le=70)
+    humidity: Optional[float] = Field(default=None, ge=0, le=100, description="Air humidity (%)")
+    ph: Optional[float] = Field(default=None, ge=0, le=14)
+    uv: Optional[float] = Field(default=None, ge=0, le=100)
+    rain: Optional[float] = Field(default=None, ge=0, le=100)
+
+
+class StoredReading(DeviceReadingIn):
+    timestamp: int = Field(description="Server receive time, ms since epoch")
+
+
+class LatestReadingResponse(BaseModel):
+    reading: Optional[StoredReading]
+    online: bool
+    age_seconds: Optional[float]
+
+
+class HistoryResponse(BaseModel):
+    readings: list[StoredReading]

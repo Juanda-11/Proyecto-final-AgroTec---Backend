@@ -1,10 +1,16 @@
-from fastapi import APIRouter, FastAPI, Request
+from urllib.parse import parse_qsl, urlencode
+
+import hmac
+import time
+
+from fastapi import APIRouter, FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import config, schemas
 from app.services import forecast as fc
 from app.services import gemini, rules
+from app.services.store import get_store
 
 app = FastAPI(title="AgroTec API", version="1.0.0",
               description="Servicios de IA para agricultura de precisión en Nariño")
@@ -123,6 +129,36 @@ async def summary(req: schemas.SummaryRequest):
     )
 
 
+@router.post("/readings", response_model=schemas.StoredReading, status_code=201)
+async def ingest_reading(body: schemas.DeviceReadingIn, x_device_key: str = Header(default="")):
+    """Called by the ESP32 sensor node. Protected with a shared key; timestamp is set by the server."""
+    if not config.DEVICE_API_KEY:
+        raise HTTPException(status_code=503, detail="Device ingestion is not configured (DEVICE_API_KEY)")
+    if not hmac.compare_digest(x_device_key.encode(), config.DEVICE_API_KEY.encode()):
+        raise HTTPException(status_code=401, detail="Invalid device key")
+    stored = schemas.StoredReading(**body.model_dump(), timestamp=int(time.time() * 1000))
+    await get_store().add(stored)
+    return stored
+
+
+@router.get("/readings/latest", response_model=schemas.LatestReadingResponse)
+async def latest_reading():
+    """Latest value from the physical device, plus whether it is still reporting."""
+    reading = await get_store().latest()
+    if reading is None:
+        return schemas.LatestReadingResponse(reading=None, online=False, age_seconds=None)
+    age = max(0.0, time.time() - reading.timestamp / 1000)
+    return schemas.LatestReadingResponse(
+        reading=reading, online=age <= config.DEVICE_ONLINE_SECONDS, age_seconds=round(age, 1)
+    )
+
+
+@router.get("/readings/history", response_model=schemas.HistoryResponse)
+async def reading_history(limit: int = 30):
+    limit = max(1, min(limit, 200))
+    return schemas.HistoryResponse(readings=await get_store().history(limit))
+
+
 app.include_router(router, prefix="/api")
 app.include_router(router, include_in_schema=False)
 
@@ -136,3 +172,25 @@ def root():
 def not_found(full_path: str, request: Request):
     """404 informativo: muestra la ruta que recibió la app (útil para depurar el despliegue)."""
     return JSONResponse({"detail": "Not Found", "path": request.url.path}, status_code=404)
+
+
+class RestoreVercelPath:
+    """Vercel reescribe /<ruta> a /api/index?__path=<ruta> (ver vercel.json) y la app solo ve /api/index.
+    Este middleware ASGI vuelve a poner la ruta original antes de enrutar."""
+
+    def __init__(self, inner):
+        self.inner = inner
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["path"] in ("/api/index", "/index"):
+            pairs = parse_qsl(scope.get("query_string", b"").decode(), keep_blank_values=True)
+            original = next((v for k, v in pairs if k == "__path"), None)
+            if original is not None:
+                path = "/" + original.lstrip("/")
+                rest = urlencode([(k, v) for k, v in pairs if k != "__path"])
+                scope = {**scope, "path": path, "raw_path": path.encode(), "query_string": rest.encode()}
+        await self.inner(scope, receive, send)
+
+
+# Debe ser el middleware más externo: se añade al final.
+app.add_middleware(RestoreVercelPath)
