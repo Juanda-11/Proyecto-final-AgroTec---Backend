@@ -160,7 +160,7 @@ Marquen cada línea cuando la confirmen con la vista:
 ## 7. Cómo armar la maqueta física (propuesta sencilla)
 - **Base:** una tabla o acrílico de unos 40×30 cm. Pueden pintar un letrero "AgroTec · Nariño".
 - **Matera con tierra y una planta** en el centro; el sensor de suelo clavado a unos 5 cm de la planta.
-- **DHT22 y UV** en un palito o soporte, a unos 20 cm sobre la planta, con el UV mirando al cielo y el DHT22 a la sombra.
+- **DHT22** en un palito o soporte, a unos 20 cm sobre la planta, a la sombra y sin sol directo (si algún día usan un sensor UV, va ahí mirando al cielo).
 - **Placa de lluvia** en una esquina, inclinada.
 - **Electrónica** (ESP32 + protoboard) dentro de una cajita plástica con orificios para los cables, fuera del alcance del agua. Fijen todo con silicona caliente o cinta de doble cara.
 - **Energía:** cable USB a un power bank o cargador.
