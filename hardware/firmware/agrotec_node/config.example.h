@@ -21,6 +21,9 @@
 #define RAIN_RAW_DRY 4095
 #define RAIN_RAW_WET 1200
 
+// Air temperature/humidity sensor on GPIO4: DHT22 (white, more accurate) or DHT11 (small blue one).
+#define DHT_TYPE DHT22
+
 // UV sensor on GPIO32. 0 = no UV sensor (the app keeps UV simulated and labels it SIM)
 //                      1 = GUVA-S12SD or UVM-30A (about 100 mV per UV index)
 //                      2 = ML8511 / GY-8511 (about 1.0 V with no UV, up to 2.8 V; tie its EN pin to 3V3)
