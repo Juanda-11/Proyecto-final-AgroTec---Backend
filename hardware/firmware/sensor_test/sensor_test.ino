@@ -4,7 +4,7 @@
 //
 //   DHT22 / DHT11 (air temperature + humidity)  -> D4
 //   Capacitive soil moisture sensor (AOUT)      -> D34
-//   Rain module (AO, not DO)                    -> D35
+//   Rain module (AO, not DO; or the S pin of the 3-pin Water Sensor) -> D35
 //   All sensors powered from 3V3 and GND.
 //
 // Library needed (Library Manager): "DHT sensor library" by Adafruit (accept "Adafruit Unified Sensor" too).
@@ -19,6 +19,8 @@ static const uint8_t PIN_RAIN = 35;  // ADC1 pin
 // Starting calibration values (12-bit ADC: 0-4095). Replace them with what YOU measure:
 //   soil sensor in the AIR -> SOIL_RAW_DRY   |  soil sensor in WATER (up to the line) -> SOIL_RAW_WET
 //   rain plate DRY         -> RAIN_RAW_DRY   |  rain plate with water drops           -> RAIN_RAW_WET
+// NOTE: the red 3-pin "Water Sensor" module (pins - + S) reads ~0 when DRY and goes UP when wet, the opposite of
+// the FC-37 module. For that module set RAIN_RAW_DRY = 0 and RAIN_RAW_WET = the value you read with the plate wet.
 const int SOIL_RAW_DRY = 3200;
 const int SOIL_RAW_WET = 1400;
 const int RAIN_RAW_DRY = 4095;
@@ -75,7 +77,7 @@ void loop() {
 
   // Quick wiring hints
   if (soilRaw <= 5) Serial.println("  hint soil: raw ~0 -> check GND, VCC and that AOUT goes to D34");
-  if (rainRaw <= 5) Serial.println("  hint rain: raw ~0 -> check GND, VCC and that AO (not DO) goes to D35");
+  // Rain raw ~0 is NORMAL for the red 3-pin "Water Sensor" when dry. If it never changes when wet, check VCC/GND/signal.
 
   delay(2000);  // the DHT needs at least 2 s between readings
 }

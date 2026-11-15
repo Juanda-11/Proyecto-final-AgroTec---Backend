@@ -44,6 +44,15 @@ Un commit por cambio real (no mezclen todo en uno). **No** suban `config.h` (tie
 4. **Guíense por las etiquetas impresas en cada módulo** (`VCC`, `GND`, `OUT`/`AO`/`DATA`…), no por el orden de los pines: cambia entre fabricantes.
 5. Si algo huele a quemado o se calienta mucho, desconecten el USB de inmediato.
 
+## 0.5 ¿Su placa es un ESP32 con "shield" de expansión (pines de 3 en 3)?
+Algunas placas vienen montadas sobre una placa morada/azul con **filas de pines de 3 contactos por cada GPIO**: **amarillo = señal (S)**, **rojo = alimentación (V)** y **negro = tierra (G)**.
+Con ese tipo de placa **no necesitan protoboard**: cada sensor se enchufa con su cable de 3 hilos directamente al grupo del pin que le toca. Reglas:
+1. **Elijan el grupo por su etiqueta**: el DHT va al grupo **4**, el sensor de suelo al **34** y la lluvia al **35** (la etiqueta puede decir `4`, `D4`, `IO4`, `P4`...).
+2. **Respeten los colores:** el cable **negro** sobre la fila negra (G), el **rojo** sobre la roja (V) y el **amarillo/naranja** sobre la amarilla (S). Verifiquen con las etiquetas del sensor (`VCC`, `GND`, `OUT`/`AOUT`/`S`): si los colores del cable no coinciden, mandan las etiquetas del sensor.
+3. **El voltaje de la fila roja (V) debe ser 3.3 V, no 5 V.** Estas placas tienen un **jumper (puente amarillo)** para escoger 3V3/5V: déjenlo en **3V3**. Con 5 V algunas salidas analógicas pueden superar los 3.3 V y dañar el ESP32.
+4. Usen **un solo cable USB**, y **no conecten el adaptador del conector DC**.
+5. Pongan la placa sobre una superficie **no metálica y seca** (nunca cerca del agua que se usa para probar).
+
 ## 1. Qué debe tener a la mano
 - ESP32 DevKit V1 (30 pines), cable USB de datos, computador con Arduino IDE.
 - Protoboard de 830 puntos.
@@ -117,7 +126,10 @@ Dejen el ESP32 sobre la mesa **al lado** de la protoboard (no hace falta enchufa
    - `AOUT` → pin **D34** del ESP32
 3. **Solo la parte inferior del sensor, hasta la línea impresa, va dentro de la tierra.** Sellen el borde superior con silicona o esmalte de uñas para que no entre humedad a los componentes.
 
-### 4.4 Módulo de lluvia FC-37 → pin D35
+### 4.4 Módulo de lluvia → pin D35
+> **Dos tipos de módulo:** el **FC-37** (placa + módulo con chip y 4 pines `VCC GND DO AO`) y el **rojo "Water Sensor"** de 3 pines (`−  +  S`). Se conectan igual (alimentación + señal a D35, usando `AO` o `S`),
+> pero se **calibran al revés**: el FC-37 marca ~4095 en seco y baja al mojarse; el *Water Sensor* rojo marca **~0 en seco y sube al mojarse**. Para el rojo pongan `RAIN_RAW_DRY 0` y `RAIN_RAW_WET` = el valor que lean con la placa mojada.
+
 1. Tiene **dos partes**: la placa con pistas (el sensor, que se moja) y el módulo pequeño con un chip (el comparador). Se unen con un cable de 2 hilos; el módulo tiene 4 pines: `VCC`, `GND`, `DO`, `AO`.
 2. Usen **`AO`** (analógico). **`DO` no se conecta**.
    - riel **rojo** → `VCC`

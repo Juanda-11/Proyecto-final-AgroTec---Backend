@@ -16,6 +16,7 @@
 // Calibration (12-bit ADC, 0-4095). Run with CALIBRATION_MODE 1 and note the raw values:
 //   soil sensor in dry air -> SOIL_RAW_DRY, soil sensor submerged in water -> SOIL_RAW_WET
 //   rain module dry -> RAIN_RAW_DRY, rain module with water drops covering the plate -> RAIN_RAW_WET
+//   (red 3-pin "Water Sensor": reads ~0 when dry and rises when wet -> RAIN_RAW_DRY 0, RAIN_RAW_WET = wet reading)
 #define SOIL_RAW_DRY 3200
 #define SOIL_RAW_WET 1400
 #define RAIN_RAW_DRY 4095
