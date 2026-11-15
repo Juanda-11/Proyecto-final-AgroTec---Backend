@@ -58,6 +58,8 @@ Si el DHT22 viene suelto (4 patas), pongan una resistencia de 10 kΩ entre VCC y
 5. **Subir el sketch** con `CALIBRATION_MODE 0`. El LED azul de la placa se enciende cuando el envío fue exitoso (HTTP 201).
 6. **En la app:** Inicio → interruptor **Sensor real**. Debe aparecer "● Sensor conectado" y los valores de la maqueta.
 
+> **Prueba rápida del cableado:** `hardware/firmware/sensor_test/sensor_test.ino` lee los 3 sensores y los imprime en el Monitor Serie, sin WiFi ni claves.
+
 ## 4. Problemas frecuentes
 - **No conecta al WiFi:** el ESP32 solo usa redes **2.4 GHz** y no entra a redes con login web o WPA2-Enterprise (como suelen ser las de la universidad). Usen la **zona WiFi de un celular**.
 - **El Monitor Serie muestra HTTP 401:** la `DEVICE_KEY` del `config.h` no coincide con `DEVICE_API_KEY` de Vercel. **503:** falta definir `DEVICE_API_KEY` en Vercel.

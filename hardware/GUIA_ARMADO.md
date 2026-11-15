@@ -141,6 +141,9 @@ Marquen cada línea cuando la confirmen con la vista:
 - [ ] Todo está seco.
 
 ## 5. Calibración (15 minutos, una sola vez)
+**Paso previo — prueba rápida del cableado:** abran `hardware/firmware/sensor_test/sensor_test.ino` en Arduino IDE (no necesita WiFi ni claves), súbanlo y abran el Monitor Serie a 115200.
+Cada 2 segundos imprime temperatura, humedad del aire, humedad del suelo y lluvia. Si el DHT dice `READ FAILED`, revisen D4 y `DHT_TYPE` (`DHT22` o `DHT11` si el sensor es el azul pequeño).
+Cuando los 3 sensores respondan, sigan con la calibración de abajo usando el firmware completo.
 1. En el repo del backend, carpeta `hardware/firmware/agrotec_node/`, copien `config.example.h` como **`config.h`** (en la misma carpeta) y ábranlo.
 2. Pongan `#define CALIBRATION_MODE 1`. Dejen WiFi y claves como están por ahora.
 3. Abran `agrotec_node.ino` en Arduino IDE, *Subir*, y abran el **Monitor Serie** (esquina superior derecha, velocidad **115200**). Verán una línea por segundo:
