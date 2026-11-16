@@ -37,10 +37,10 @@ Usen solo pines **ADC1** (32–39) para lo analógico: el ADC2 no funciona con e
 
 | Sensor | Pin del sensor | Pin del ESP32 |
 |---|---|---|
-| DHT22 | VCC / DATA / GND | 3V3 / **GPIO4** / GND |
+| DHT22 | VCC / DATA / GND | 3V3 / **GPIO32** / GND |
 | Humedad de suelo | VCC / AOUT / GND | 3V3 / **GPIO34** / GND |
 | Lluvia FC-37 | VCC / **AO** / GND | 3V3 / **GPIO35** / GND |
-| UV (opcional) | VCC / SIG(OUT) / GND | 3V3 / **GPIO32** / GND |
+| UV (opcional) | VCC / SIG(OUT) / GND | 3V3 / **GPIO33** / GND |
 
 Si el DHT22 viene suelto (4 patas), pongan una resistencia de 10 kΩ entre VCC y DATA. El pin DO del módulo de lluvia no se usa.
 

@@ -47,7 +47,7 @@ Un commit por cambio real (no mezclen todo en uno). **No** suban `config.h` (tie
 ## 0.5 ¿Su placa es un ESP32 con "shield" de expansión (pines de 3 en 3)?
 Algunas placas vienen montadas sobre una placa morada/azul con **filas de pines de 3 contactos por cada GPIO**: **amarillo = señal (S)**, **rojo = alimentación (V)** y **negro = tierra (G)**.
 Con ese tipo de placa **no necesitan protoboard**: cada sensor se enchufa con su cable de 3 hilos directamente al grupo del pin que le toca. Reglas:
-1. **Elijan el grupo por su etiqueta**: el DHT va al grupo **4**, el sensor de suelo al **34** y la lluvia al **35** (la etiqueta puede decir `4`, `D4`, `IO4`, `P4`...).
+1. **Elijan el grupo por su etiqueta**: el DHT va al grupo **32**, el sensor de suelo al **34** y la lluvia al **35** (la etiqueta puede decir `32`, `D32`, `IO32`, `P32`...).
 2. **Respeten los colores:** el cable **negro** sobre la fila negra (G), el **rojo** sobre la roja (V) y el **amarillo/naranja** sobre la amarilla (S). Verifiquen con las etiquetas del sensor (`VCC`, `GND`, `OUT`/`AOUT`/`S`): si los colores del cable no coinciden, mandan las etiquetas del sensor.
 3. **El voltaje de la fila roja (V) debe ser 3.3 V, no 5 V.** Estas placas tienen un **jumper (puente amarillo)** para escoger 3V3/5V: déjenlo en **3V3**. Con 5 V algunas salidas analógicas pueden superar los 3.3 V y dañar el ESP32.
 4. Usen **un solo cable USB**, y **no conecten el adaptador del conector DC**.
@@ -70,19 +70,19 @@ Con ese tipo de placa **no necesitan protoboard**: cada sensor se enchufa con su
    VN (39)                                   TX0
  ► D34   <- humedad de suelo                 RX0
  ► D35   <- lluvia                           D21
- ► D32   <- UV (SIN USAR en nuestra versión)  D19
-   D33                                       D18
+ ► D32   <- DHT22 (temperatura y humedad)   D19
+   D33   <- UV (SIN USAR en nuestra versión)  D18
    D25                                       D5
    D26                                       TX2
    D27                                       RX2
-   D14                                  ◄ D4    -> DHT22
+   D14                                       D4  (sin usar)
    D12                                       D2  (LED azul de la placa)
    D13                                       D15
  ► GND   <- cualquiera de los GND         ◄ GND
    VIN   <- NO USAR                       ◄ 3V3  -> alimentación de TODOS los sensores
             [ USB ]
 ```
-Si su placa tiene otro orden, **busquen las etiquetas `D34`, `D35`, `D32`, `D4`, `3V3` y `GND`** en la placa: son los únicos 6 pines que se usan.
+Si su placa tiene otro orden, **busquen las etiquetas `D34`, `D35`, `D32`, `3V3` y `GND`** en la placa: son los únicos pines que se usan.
 
 **La protoboard:**
 - Los **huecos de una misma columna (a–e, o f–j) están conectados entre sí**. Los de columnas distintas, no. Los dos lados del canal central tampoco se conectan.
@@ -110,13 +110,13 @@ Para cada sensor: se ubica el módulo en una zona propia de la protoboard, se co
 
 Dejen el ESP32 sobre la mesa **al lado** de la protoboard (no hace falta enchufarlo en ella).
 
-### 4.2 DHT22 (temperatura y humedad del aire) → pin D4
+### 4.2 DHT22 (temperatura y humedad del aire) → pin D32
 1. El módulo de 3 pines trae etiquetas: `+` (o VCC), `OUT` (o DATA) y `−` (o GND).
 2. Claven sus 3 pines en una fila de la protoboard, en 3 columnas contiguas (por ejemplo columnas 10, 11 y 12 en la fila `a`).
 3. Cables:
    - riel **rojo** → columna del `+` (M-M)
    - riel **azul** → columna del `−` (M-M)
-   - columna de `OUT` → pin **D4** del ESP32 (M-H)
+   - columna de `OUT` → pin **D32** del ESP32 (M-H)
 
 ### 4.3 Sensor de humedad de suelo → pin D34
 1. El cable del sensor tiene 3 hilos: `VCC`, `GND` y `AOUT` (señal). Si el sensor trae un conector blanco, conéctenlo al cable que viene incluido.
@@ -138,23 +138,23 @@ Dejen el ESP32 sobre la mesa **al lado** de la protoboard (no hace falta enchufa
 3. Pongan la placa **inclinada** para que el agua escurra y se pueda secar.
 
 ### 4.5 Sensor UV → **No lo usaremos** (saltar esta sección)
-Nuestra maqueta **no lleva sensor UV**: no conecten nada al pin D32 y en `config.h` dejen `#define UV_SENSOR 0` (el firmware ya lo trae así).
+Nuestra maqueta **no lleva sensor UV**: no conecten nada al pin D33 y en `config.h` dejen `#define UV_SENSOR 0` (el firmware ya lo trae así).
 La app mostrará el UV con la etiqueta **SIM** (simulado), y es lo correcto.
 
 *Solo si algún día consiguen uno:* el GUVA-S12SD o el UVM-30A (`UV_SENSOR 1`) y el ML8511/GY-8511 (`UV_SENSOR 2`, además con el pin `EN` al riel rojo)
-se conectan con `VCC` al riel rojo, `GND` al azul y la salida a **D32**. Eviten los módulos I2C (VEML6075, LTR390): este firmware no los soporta.
+se conectan con `VCC` al riel rojo, `GND` al azul y la salida a **D33**. Eviten los módulos I2C (VEML6075, LTR390): este firmware no los soporta.
 
 ### 4.6 Revisión final (no se salten esto)
 Marquen cada línea cuando la confirmen con la vista:
 - [ ] `3V3` del ESP32 → solo al riel **rojo**. `GND` → solo al riel **azul**. Nada conectado a `VIN`.
 - [ ] Los 3 sensores tienen **un** cable rojo, **uno** azul y **uno** de señal.
-- [ ] Señales: DHT22 → **D4**, suelo → **D34**, lluvia → **D35**. **D32 queda sin conectar.**
+- [ ] Señales: DHT22 → **D32**, suelo → **D34**, lluvia → **D35**. **D33 queda sin conectar.**
 - [ ] Ningún cable de señal toca los rieles ni otra columna.
 - [ ] Todo está seco.
 
 ## 5. Calibración (15 minutos, una sola vez)
 **Paso previo — prueba rápida del cableado:** abran `hardware/firmware/sensor_test/sensor_test.ino` en Arduino IDE (no necesita WiFi ni claves), súbanlo y abran el Monitor Serie a 115200.
-Cada 2 segundos imprime temperatura, humedad del aire, humedad del suelo y lluvia. Si el DHT dice `READ FAILED`, revisen D4 y `DHT_TYPE` (`DHT22` o `DHT11` si el sensor es el azul pequeño).
+Cada 2 segundos imprime temperatura, humedad del aire, humedad del suelo y lluvia. Si el DHT dice `READ FAILED`, revisen D32 y `DHT_TYPE` (`DHT22` o `DHT11` si el sensor es el azul pequeño).
 Cuando los 3 sensores respondan, sigan con la calibración de abajo usando el firmware completo.
 1. En el repo del backend, carpeta `hardware/firmware/agrotec_node/`, copien `config.example.h` como **`config.h`** (en la misma carpeta) y ábranlo.
 2. Pongan `#define CALIBRATION_MODE 1`. Dejen WiFi y claves como están por ahora.
@@ -197,7 +197,7 @@ Cuando los 3 sensores respondan, sigan con la calibración de abajo usando el fi
 |---|---|---|
 | El ESP32 no aparece como puerto | Cable solo de carga o falta el driver | Usen otro cable USB **de datos**; instalen CP210x o CH340 |
 | "Connecting......" no termina al subir | La placa no entra a modo carga | Mantengan pulsado `BOOT` mientras sube |
-| `DHT22 read failed` | Cable de datos mal puesto o sin alimentación | Revisen D4, `+` y `−`; reconecten |
+| `DHT22 read failed` | Cable de datos mal puesto o sin alimentación | Revisen D32, `+` y `−`; reconecten |
 | Suelo siempre 0 % o 100 % | Calibración o cable en otro pin | Repitan el paso 5; confirmen D34 |
 | Lluvia siempre 100 % o 0 % | Falta calibrar o usaron `DO` en vez de `AO` | Usen `AO` → D35; calibren |
 | `WiFi connection failed` | Red 5 GHz, con login web, o clave mal escrita | Usen la zona WiFi del celular en 2.4 GHz |

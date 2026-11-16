@@ -10,10 +10,10 @@
 #include "config.h"
 #include "conversions.h"
 
-static const uint8_t PIN_DHT = 4;    // DHT22 data
+static const uint8_t PIN_DHT = 32;   // DHT22 / DHT11 data
 static const uint8_t PIN_SOIL = 34;  // capacitive soil moisture, analog out
 static const uint8_t PIN_RAIN = 35;  // rain module AO
-static const uint8_t PIN_UV = 32;    // UV sensor analog out (only used when UV_SENSOR != 0)
+static const uint8_t PIN_UV = 33;    // UV sensor analog out (only used when UV_SENSOR != 0)
 static const uint8_t PIN_LED = 2;    // on-board LED
 
 DHT dht(PIN_DHT, DHT_TYPE);

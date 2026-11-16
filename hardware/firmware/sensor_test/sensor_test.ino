@@ -2,7 +2,7 @@
 // Reads the 3 sensors of the mockup and prints them in the Serial Monitor (115200 baud).
 // No WiFi, no keys: use it to check the wiring and to find your calibration values.
 //
-//   DHT22 / DHT11 (air temperature + humidity)  -> D4
+//   DHT22 / DHT11 (air temperature + humidity)  -> D32
 //   Capacitive soil moisture sensor (AOUT)      -> D34
 //   Rain module (AO, not DO; or the S pin of the 3-pin Water Sensor) -> D35
 //   All sensors powered from 3V3 and GND.
@@ -12,7 +12,7 @@
 
 #define DHT_TYPE DHT22  // change to DHT11 if your sensor is the small BLUE one
 
-static const uint8_t PIN_DHT = 4;
+static const uint8_t PIN_DHT = 32;
 static const uint8_t PIN_SOIL = 34;  // ADC1 pin (works with WiFi on)
 static const uint8_t PIN_RAIN = 35;  // ADC1 pin
 
@@ -67,7 +67,7 @@ void loop() {
 
   Serial.println("------------------------------");
   if (isnan(temperature) || isnan(airHumidity)) {
-    Serial.println("DHT: READ FAILED -> check D4, the + and - pins, and DHT_TYPE (DHT22 vs DHT11)");
+    Serial.println("DHT: READ FAILED -> check D32, the + and - pins, and DHT_TYPE (DHT22 vs DHT11)");
   } else {
     Serial.printf("Air temperature : %.1f C\n", temperature);
     Serial.printf("Air humidity    : %.1f %%\n", airHumidity);
