@@ -37,5 +37,5 @@ Importa este repo en Vercel (framework: Other). `api/index.py` + `vercel.json` y
 Define las variables `GEMINI_API_KEY`, `GEMINI_MODEL` y `CORS_ORIGINS` (URL del frontend) en *Settings → Environment Variables*.
 
 ## Hardware
-Guía de compra, conexiones, firmware del ESP32 y simulador de dispositivo en [`hardware/README.md`](hardware/README.md).
+Conexiones, firmware del ESP32, calibración y simulador de dispositivo en [`hardware/README.md`](hardware/README.md).
 Variables nuevas: `DEVICE_API_KEY`, `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` (o `KV_REST_API_URL`/`KV_REST_API_TOKEN`).
