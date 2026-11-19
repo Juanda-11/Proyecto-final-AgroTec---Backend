@@ -30,7 +30,7 @@ pH y UV salen como **SIM**: están simulados (no hay sensores conectados).
 | 3 | Gotas en la placa roja | Sube la lluvia | OK (de ~5 % a ~90 % con gotas) |
 | 4 | Echar agua a la matera | Debería subir la humedad del suelo | **Pendiente**: ver nota del sensor de suelo |
 | 5 | Dejar secar | Baja y puede aparecer una alerta | **Pendiente** (depende del punto 4) |
-| 6 | Pulsar "Analizar mi cultivo" | La IA explica con las lecturas actuales | Pendiente de ensayar |
+| 6 | Pulsar "Analizar mi cultivo" | La IA explica con las lecturas actuales | OK, pero tarda 25-60 s (ver notas) |
 | 7 | Apagar el ESP32 | A los ~30 s la app dice "Nodo sin señal" | OK |
 
 ## Notas y límites conocidos
@@ -39,6 +39,14 @@ pH y UV salen como **SIM**: están simulados (no hay sensores conectados).
   (un sensor capacitivo sano baja 1000+). El porcentaje de suelo es poco fiable y la app puede mostrar
   una alerta de humedad "ALTO" con 0 %. Antes de la demo conviene revisar el contacto del cable de señal
   (D34) y recalibrar con la matera real.
+- **"Analizar mi cultivo" (ensayado):** el botón pasa a "Pensando..." y Gemini responde en 25-60 s. Resultado real
+  del ensayo (cultivo Papa, modo Sensor real): riesgo **BAJO**, riego **NINGUNO**, mensaje "Alta probabilidad de
+  lluvia: vigile encharcamiento y hongos" y un consejo de revisar drenajes y vigilar hongos (gota/tizón), con la
+  humedad del suelo real en 44 %. Durante la demo, pulsar el botón con tiempo y seguir hablando mientras responde.
+  El pH y la UV que usa la IA son simulados.
+- **Alertas de lluvia:** con la placa de lluvia mojada la app lee 100 % y la cola de alertas acumula avisos
+  "Prob. de lluvia - ALTO" en cada lectura (llegó a 5 pendientes). Secar la placa antes de empezar y usar
+  "Restablecer datos guardados" para limpiar la cola entre ensayos.
 - **Envío intermitente:** algunos POST fallan (`-1`, `-11`), sobre todo con señal WiFi débil. Si la app
   marca "sin señal" un momento, esperar unos segundos. Mantener la placa cerca del router.
 - **Aviso "sin señal":** aparece cuando pasan ~30 s sin lectura, tanto al apagar la placa como si fallan los envíos.
